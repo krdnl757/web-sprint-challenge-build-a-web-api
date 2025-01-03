@@ -63,10 +63,7 @@ router.put('/:id', (req, res) => {
   const actionId = req.params.id;
   const action = findActionById(actionId);
 
-  if (!action) {
-    return res.status(404).json({ message: 'Action not found' });
-  }
-
+ 
   const { project_id, description, completed } = req.body;
 
   // Validate request body
@@ -74,12 +71,15 @@ router.put('/:id', (req, res) => {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
-  // Validate if project_id exists
+  // Validate if project_id exist
+
   const projectExists = projects.some(project => project.id === project_id);
   if (!projectExists) {
     return res.status(400).json({ message: 'Invalid project_id' });
   }
-
+  if (!action) {
+    return res.status(404).json({ message: 'Action not found' });
+  }
   // Update the action
   action.project_id = project_id;
   action.description = description;
