@@ -1,18 +1,27 @@
 // Write your "projects" router here!
+const md = require('./projects-middleware');
 const Projects = require('./projects-model');
 const router = require('express').Router();
 
-router.get('/api/projects', async (req, res) => {
-    const projects = await Projects.get()
-    res.status(200).json(projects);
+router.get('/', (req, res, next) => {
+     Projects.get()
+     .then(projects=>{
+         res.status(200).json(projects);    
+     })
+     .catch(error=>{
+        next({
+            message:"We ran into an error retreiving projects"
+        })
+     })
 })
 
-router.get('/:id', async (req, res) => {
-    const projects = await Projects.get(req.params.id)
-    if (!projects) {
-        return res.status(404).json({ message: 'Project not found' });
-    }
-    res.status(200).json(projects);
+router.get('/:id',md.checkProjectId, (req, res, next) => {
+    // Projects.get(id)
+    // .then(projects=>{
+    //     res.status(200).json(projects); 
+    // })
+
+    res.json(req.project) 
 })
 
 router.post('/', async (req, res) => {
@@ -23,12 +32,17 @@ router.post('/', async (req, res) => {
     res.status(201).json(project);
 })
 
-router.put('/:id', async (req, res) => {
-    if (!req.body.name || !req.body.description || req.body.completed === undefined) {
-        return res.status(400).json({ message: 'Name, description, and completed status are required' });
-    }
-    const project = await Projects.update(req.params.id, req.body)
-    res.status(200).json(project);
+router.put('/:id',md.checkProjectUpdatePayload,md.checkProjectId, async (req, res, next) => {
+  
+     await Projects.update(req.params.id, req.body) .then(updated => {
+        res.status(200).json(updated);
+      })
+    .catch(error =>{
+        next({message:'We ran into an error updating the project'
+
+        })
+
+    })
 })
 
 router.delete('/:id', async (req, res) => {
